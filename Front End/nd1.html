@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <!-- Required meta tags always come first -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="node_modules/font-awesome/css/font-awesome.min.css">
+  <link rel="stylesheet" href="node_modules/bootstrap-social/bootstrap-social.css">
+  <link rel="stylesheet" href="css/styles.css">
+
+  <title>Climate Trends</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"
+    integrity="sha512-bZS47S7sPOxkjU/4Bt0zrhEtWx0y0CRkhEp8IckzK+ltifIIE9EMIMTuT/mEzoIMewUINruDBIR/jJnbguonqQ=="
+    crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.6.0/chart.min.js"></script>
+
+</head>
+
+<body>
+
+  <nav class="navbar navbar-expand-sm navbar-dark fixed-top">
+    <a class="navbar-brand" href="#">Sea Ice Melting Rate</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup"
+      aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+      <div class="navbar-nav">
+        <a class="nav-item nav-link" href="./index.html"><span class="fa fa-home fa-lg"></span> Home</a>
+        <a class="nav-item nav-link" href="./co2.html">CO2 Emissions</a>
+        <a class="nav-item nav-link" href="./st.html">Surface Temperature</a>
+        <a class="nav-item nav-link" href="./nd.html">Natural Disasters</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="jumbotron">
+    <h2>Rate Of Melting Of Sea Ice</h2>
+  </header>
+  <form>
+    <div class="mb-3">
+      <label for="startyear" class="form-label">Start Year</label>
+      <!-- <select id="startyear" onchange="startYearChange(this);"> -->
+      <select id="startyear">
+        <!-- <option value="-1">&nbsp;</option> -->
+      </select>
+    </div>
+    <div class="mb-3">
+      <label for="endyear" class="form-label">End Year</label>
+      <select id="endyear">
+        <!-- <option value="-1">&nbsp;</option> -->
+      </select>
+    </div>
+    <button id="submitButton" type="submit" class="btn btn-primary">Submit</button>
+  </form>
+  
+
+  <canvas id="myChart" width="3000" height="600"></canvas>
+
+  <!-- jQuery first, then Popper.js, then Bootstrap JS. -->
+  <script src="node_modules/jquery/dist/jquery.slim.min.js"></script>
+  <script src="node_modules/popper.js/dist/umd/popper.min.js"></script>
+  <script src="node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
+  <script>
+    var selectBox1 = document.getElementById('startyear');
+    var selectBox2 = document.getElementById('endyear');
+    for (var i = 1980; i <= 2015; i++) {
+      // create option element
+      var option = document.createElement('option');
+      // add value and text name
+      option.value = i;
+      option.innerHTML = i;
+      // add the option element to the selectbox
+      selectBox1.appendChild(option);
+    }
+    for (var i = 1980; i <= 2015; i++) {
+      // create option element
+      var option = document.createElement('option');
+      // add value and text name
+      option.value = i;
+      option.innerHTML = i;
+      // add the option element to the selectbox
+      selectBox2.appendChild(option);
+    }
+
+      // var select = document.getElementById('startyear');
+      // var value = select.options[select.selectedIndex].value;
+      // document.write(JSON.stringify(value));
+  </script>
+  <script>
+      // function startYearChange() {
+      //   var select = document.getElementById('startyear');
+      //   var value = select.options[select.selectedIndex].value;
+      //   document.write(JSON.stringify(value));
+      // }
+  </script>
+  <script>
+    document.getElementById('submitButton').onclick = async function doSomething(event) {
+      try {
+        event.preventDefault();
+        if (Chart.getChart("myChart") !== undefined) {
+          console.log('yyy');
+          Chart.getChart("myChart").destroy();
+        }
+        var select1 = document.getElementById('startyear');
+        var year1 = select1.options[select1.selectedIndex].value;
+        var select2 = document.getElementById('endyear');
+        var year2 = select2.options[select2.selectedIndex].value;
+        if(year2<=year1){
+          alert("End date should be greater than Start Date");
+        }
+        console.log('year1 is :', year1);
+        console.log('year2 is :', year2);
+        const response = await axios.post('http://localhost:3002/natural-disasters/melting-ice', {
+          "startYear": year1,
+          "endYear": year2
+        }, { timeout: 10000 });
+
+        const json = response.data;
+
+        var labelarray = []
+        var dataarray1 = []
+        var dataarray2 = []
+
+        for (let i in json.rows) {
+          labelarray.push(json.rows[i][1])
+          dataarray1.push(json.rows[i][0])
+          dataarray2.push(json.rows[i][2])
+        }
+
+        const labels = labelarray;
+        const data = {
+          labels: labels,
+          datasets: [
+            {
+              label: json.metaData[0].name,
+              data: dataarray1,
+              borderColor: '#FF3333',
+              backgroundColor: '#A10202',
+            },
+            {
+              label: json.metaData[2].name,
+              data: dataarray2,
+              borderColor: '#3045FF',
+              backgroundColor: '#0012B0'
+            }
+          ]
+        };
+
+        var ctx = document.getElementById('myChart');
+        var myChart = new Chart(ctx, {
+          type: 'line',
+          data: data
+        }
+        )
+
+        console.log(JSON.stringify(response));
+        return response;
+      } catch (err) {
+        console.log(err);
+      }
+    };
+  </script>
+</body>
+
+</html>

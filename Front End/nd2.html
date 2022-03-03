@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <!-- Required meta tags always come first -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="node_modules/font-awesome/css/font-awesome.min.css">
+  <link rel="stylesheet" href="node_modules/bootstrap-social/bootstrap-social.css">
+  <link rel="stylesheet" href="css/styles.css">
+
+  <title>Climate Trends</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"
+    integrity="sha512-bZS47S7sPOxkjU/4Bt0zrhEtWx0y0CRkhEp8IckzK+ltifIIE9EMIMTuT/mEzoIMewUINruDBIR/jJnbguonqQ=="
+    crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.6.0/chart.min.js"></script>
+</head>
+
+<body>
+
+  <nav class="navbar navbar-expand-sm navbar-dark fixed-top">
+    <a class="navbar-brand" href="#">Disaster Frequency Trends</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup"
+      aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+      <div class="navbar-nav">
+        <a class="nav-item nav-link" href="./index.html"><span class="fa fa-home fa-lg"></span> Home</a>
+        <a class="nav-item nav-link" href="./co2.html">CO2 Emissions</a>
+        <a class="nav-item nav-link" href="./st.html">Surface Temperature</a>
+        <a class="nav-item nav-link" href="./nd.html">Natural Disasters</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="jumbotron">
+    <h2>Frequency of Natural Disasters</h2>
+  </header>
+
+  <form>
+    <div class="mb-3">
+      <label for="startyear" class="form-label">Start Year</label>
+      <select id="startyear">
+        <option value="-1">Year</option>
+      </select>
+    </div>
+    <div class="mb-3">
+      <label for="endyear" class="form-label">End Year</label>
+      <select id="endyear">
+        <option value="-1">Year</option>
+      </select>
+    </div>
+    <div class="mb-3">
+      <label for="disastertype">Choose 2 types of disasters:</label>
+      <br>
+      <br>
+      <select name="disastertype" id="disastertype" multiple>
+        <option value="Fire">Forest Fires</option>
+        <option value="Flood">Floods</option>
+        <option value="Hurricane">Hurricanes</option>
+        <option value="Drought">Droughts</option>
+      </select>
+    </div>
+    <!--<div class="form-check mb-3">
+      <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault1" checked>
+      <label class="form-check-label" for="flexRadioDefault1">
+        Bar Graph
+      </label>
+    </div>
+    <div class="form-check mb-3">
+      <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault2">
+      <label class="form-check-label" for="flexRadioDefault2">
+        Line Graph
+      </label>
+    </div>-->
+    <button id="submitButton" type="submit" class="btn btn-primary">Submit</button>
+  </form>
+
+  <canvas id="myChart" width="3000" height="600"></canvas>
+
+  <!-- jQuery first, then Popper.js, then Bootstrap JS. -->
+  <script src="node_modules/jquery/dist/jquery.slim.min.js"></script>
+  <script src="node_modules/popper.js/dist/umd/popper.min.js"></script>
+  <script src="node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
+  <script>
+    var selectBox1 = document.getElementById('startyear');
+    var selectBox2 = document.getElementById('endyear');
+    for (var i = 1900; i <= 2009; i++) {
+      // create option element
+      var option = document.createElement('option');
+      // add value and text name
+      option.value = i;
+      option.innerHTML = i;
+      // add the option element to the selectbox
+      selectBox1.appendChild(option);
+    }
+    for (var i = 1900; i <= 2009; i++) {
+      // create option element
+      var option = document.createElement('option');
+      // add value and text name
+      option.value = i;
+      option.innerHTML = i;
+      // add the option element to the selectbox
+      selectBox2.appendChild(option);
+    }
+  </script>
+  <script>
+    document.getElementById('submitButton').onclick = async function doSomething(event) {
+      try {
+        event.preventDefault();
+        if (Chart.getChart("myChart") !== undefined) {
+          console.log('yyy');
+          Chart.getChart("myChart").destroy();
+        }
+        var select1 = document.getElementById('startyear');
+        var year1 = select1.options[select1.selectedIndex].value;
+        var select2 = document.getElementById('endyear');
+        var year2 = select2.options[select2.selectedIndex].value;
+        var dType = $('#disastertype').val();
+        let disaster1 = dType[0];
+        let disaster2 = dType[1];
+        console.log('year1 is :', year1);
+        console.log('year2 is :', year2);
+        console.log(dType);
+        const response = await axios.post('http://localhost:3002/natural-disasters/frequency', {
+          "startYear": Number(year1),
+          "endYear": Number(year2),
+          "disaster1": disaster1,
+          "disaster2": disaster2
+        }, { timeout: 10000 });
+
+        const json = response.data;
+
+        var labelarray = []
+        var dataarray1 = []
+        var dataarray2 = []
+        var dataarray3 = []
+        for (let i = 0; i < json.length; i++) {
+          labelarray.push(json[i].metaData[3].Timeperiod)
+          dataarray1.push(json[i].rows[0][0])
+          dataarray2.push(json[i].rows[0][1])
+          dataarray3.push(json[i].rows[0][2])
+        }
+
+        const labels = labelarray;
+        const data = {
+          labels: labels,
+          datasets: [
+            {
+              label: json[0].metaData[0].name,
+              data: dataarray1,
+              borderColor: '#FF3838',
+              backgroundColor: '#C70000',
+              yAxisID: 'y',
+            },
+            {
+              label: json[0].metaData[1].name,
+              data: dataarray2,
+              borderColor: '#3045FF',
+              backgroundColor: '#0013C2',
+              yAxisID: 'y',
+            },
+            {
+              label: json[0].metaData[2].name,
+              data: dataarray3,
+              borderColor: '#4CA336',
+              backgroundColor: '#209E00',
+              yAxisID: 'y1',
+            }
+          ]
+        };
+
+        var ctx = document.getElementById('myChart');
+        var myChart = new Chart(ctx, {
+          type: 'line',
+          data: data,
+          options: {
+            responsive: true,
+            interaction: {
+              mode: 'index',
+              intersect: false,
+            },
+            stacked: false,
+            scales: {
+              y: {
+                type: 'linear',
+                display: true,
+                position: 'left',
+              },
+              y1: {
+                type: 'linear',
+                display: true,
+                position: 'right',
+
+                // grid line settings
+                grid: {
+                  drawOnChartArea: false, // only want the grid lines for one axis to show up
+                },
+              }
+            }
+          }
+        }
+        )
+
+        console.log(JSON.stringify(response));
+        return response;
+      } catch (err) {
+        console.log(err);
+      }
+    };
+  </script>
+</body>
+
+</html>

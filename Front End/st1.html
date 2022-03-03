@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <!-- Required meta tags always come first -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="node_modules/font-awesome/css/font-awesome.min.css">
+  <link rel="stylesheet" href="node_modules/bootstrap-social/bootstrap-social.css">
+  <link rel="stylesheet" href="css/styles.css">
+
+  <title>Climate Trends</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"
+    integrity="sha512-bZS47S7sPOxkjU/4Bt0zrhEtWx0y0CRkhEp8IckzK+ltifIIE9EMIMTuT/mEzoIMewUINruDBIR/jJnbguonqQ=="
+    crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.6.0/chart.min.js"></script>
+
+</head>
+
+<body>
+
+  <nav class="navbar navbar-expand-sm navbar-dark fixed-top">
+    <a class="navbar-brand" href="#">Surface Temperature</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup"
+      aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+      <div class="navbar-nav">
+        <a class="nav-item nav-link" href="./index.html"><span class="fa fa-home fa-lg"></span> Home</a>
+        <a class="nav-item nav-link" href="./co2.html">CO2 Emissions</a>
+        <a class="nav-item nav-link" href="./st.html">Surface Temperature</a>
+        <a class="nav-item nav-link" href="./nd.html">Natural Disasters</a>
+      </div>
+  </nav>
+
+  <header class="jumbotron">
+    <h2>Temperature Change On Countries</h2>
+  </header>
+
+  <form>
+    <div class="mb-3">
+      <label for="startdate">Start date:</label>
+      <input type="date" id="startdate" name="trip-start" min="1851-01-01" max="2013-12-31" required
+        pattern="\d{4}-\d{2}-\d{2}">
+    </div>
+    <div class="mb-3">
+      <label for="enddate">End date:</label>
+      <input type="date" id="enddate" name="trip-end" min="1851-01-01" max="2013-12-31" required
+        pattern="\d{4}-\d{2}-\d{2}">
+    </div>
+    <button id="submitButton" type="submit" class="btn btn-primary">Submit</button>
+  </form>
+
+  <canvas id="myChart" width="3000" height="600"></canvas>
+
+
+  <!-- jQuery first, then Popper.js, then Bootstrap JS. -->
+  <script src="node_modules/jquery/dist/jquery.slim.min.js"></script>
+  <script src="node_modules/popper.js/dist/umd/popper.min.js"></script>
+  <script src="node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
+  <script>
+    document.getElementById('submitButton').onclick = async function doSomething(event) {
+      try {
+        event.preventDefault();
+
+        if (Chart.getChart("myChart") !== undefined) {
+          console.log('yyy');
+          Chart.getChart("myChart").destroy();
+        }
+
+
+        var temp1 = document.getElementById('startdate').value;
+        var temp2 = document.getElementById('enddate').value;
+
+        var myList1 = temp1.split('-');
+        var myList2 = temp2.split('-');
+        var date1 = "";
+        var date2 = "";
+        date1 += myList1[2]
+        date2 += myList2[2]
+        date1 += '-'
+        date2 += '-'
+        if (myList1[1] == '01') {
+          date1 += 'JAN'
+        }
+        if (myList1[1] == '02') {
+          date1 += 'FEB'
+        }
+        if (myList1[1] == '03') {
+          date1 += 'MAR'
+        }
+        if (myList1[1] == '04') {
+          date1 += 'APR'
+        }
+        if (myList1[1] == '05') {
+          date1 += 'MAY'
+        }
+        if (myList1[1] == '06') {
+          date1 += 'JUN'
+        }
+        if (myList1[1] == '07') {
+          date1 += 'JUL'
+        }
+        if (myList1[1] == '08') {
+          date1 += 'AUG'
+        }
+        if (myList1[1] == '09') {
+          date1 += 'SEP'
+        }
+        if (myList1[1] == '10') {
+          date1 += 'OCT'
+        }
+        if (myList1[1] == '11') {
+          date1 += 'NOV'
+        }
+        if (myList1[1] == '12') {
+          date1 += 'DEC'
+        }
+        if (myList2[1] == '01') {
+          date2 += 'JAN'
+        }
+        if (myList2[1] == '02') {
+          date2 += 'FEB'
+        }
+        if (myList2[1] == '03') {
+          date2 += 'MAR'
+        }
+        if (myList2[1] == '04') {
+          date2 += 'APR'
+        }
+        if (myList2[1] == '05') {
+          date2 += 'MAY'
+        }
+        if (myList2[1] == '06') {
+          date2 += 'JUN'
+        }
+        if (myList2[1] == '07') {
+          date2 += 'JUL'
+        }
+        if (myList2[1] == '08') {
+          date2 += 'AUG'
+        }
+        if (myList2[1] == '09') {
+          date2 += 'SEP'
+        }
+        if (myList2[1] == '10') {
+          date2 += 'OCT'
+        }
+        if (myList2[1] == '11') {
+          date2 += 'NOV'
+        }
+        if (myList2[1] == '12') {
+          date2 += 'DEC'
+        }
+        date1 += '-'
+        date2 += '-'
+        date1 += myList1[0]
+        date2 += myList2[0]
+
+        // document.write(JSON.stringify(date1));
+        // document.write(JSON.stringify(date2));
+
+        const response = await axios.post('http://localhost:3002/surface-temperatures/countries', {
+          "startYear": date1,
+          "endYear": date2
+        }, { timeout: 20000 });
+
+        const json = response.data;
+
+var linelabel = []
+var labelarray = []
+var data0 = []
+var data1 = []
+var data2 = []
+var result1 = []
+var result0 = []
+var result2 = []
+
+const unique = (value, index, self) => {
+  return self.indexOf(value) === index
+}
+for (const i in json.rows){
+linelabel.push(json.rows[i][2])}
+linelabel = linelabel.filter(unique)
+
+for (var i = 0;i<json.rows.length;i++){
+  if (json.rows[i][2] === linelabel[0]){
+    result0.push(json.rows[i])}
+  else if (json.rows[i][2] ===  linelabel[1]){
+    result1.push(json.rows[i])}
+  else if (json.rows[i][2] ===  linelabel[2]) { 
+    result2.push(json.rows[i])}  
+  }
+
+for (const i in result0){
+labelarray.push(result0[i][0])}
+for (const i in result0){
+data0.push(result0[i][1])}
+for (const i in result1){
+data1.push(result1[i][1])}
+for (const i in result2){
+data2.push(result2[i][1])}
+
+const labels = labelarray.sort(function(a, b)
+{
+    return a - b;
+});
+const data = {
+  labels: labels,
+  datasets: [
+    {
+      label: linelabel[0],
+      data: data0,
+      borderColor: '#F74040',
+      backgroundColor: '#FF0000'
+    },
+    {
+      label: linelabel[1],
+      data: data1,
+      borderColor: '#5263FA',
+      backgroundColor: '#001AFF'
+    },
+    {
+      label: linelabel[2],
+      data: data2,
+      borderColor: '#52B350',
+      backgroundColor: '#039C00'
+    }
+  ]
+};
+
+var ctx = document.getElementById('myChart');
+        var myChart = new Chart(ctx, {
+          type: 'line',
+          data: data
+        }
+        )
+        return response;
+
+      } catch (err) {
+        console.log(err);
+      }
+    }
+  </script>
+</body>
+
+</html>

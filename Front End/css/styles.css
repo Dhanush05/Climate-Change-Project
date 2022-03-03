@@ -1,0 +1,44 @@
+body {
+    padding: 50px 0px 0px 0px;
+    z-index: 0;
+ }
+
+.navbar-dark {
+    background-color: #008080 }
+
+.container
+{
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    height: 200px;
+    margin-top: -100px;
+    width: 400px;
+    margin-left: -100px;
+}
+
+.btn{   
+    margin-bottom: 2px;
+}
+
+.navbar-brand{
+    margin-left: 10px;
+}
+
+.jumbotron{
+    background: #7FFFD4 ;
+    height: 100px;
+    text-align: center;
+    padding: 30px;
+}
+
+form{
+    margin: 30px;
+}
+
+.incomelist{
+    display: inline-block;
+}
+
+
+

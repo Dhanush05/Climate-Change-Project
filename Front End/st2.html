@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <!-- Required meta tags always come first -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="node_modules/font-awesome/css/font-awesome.min.css">
+  <link rel="stylesheet" href="node_modules/bootstrap-social/bootstrap-social.css">
+  <link rel="stylesheet" href="css/styles.css">
+
+  <title>Climate Trends</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"
+    integrity="sha512-bZS47S7sPOxkjU/4Bt0zrhEtWx0y0CRkhEp8IckzK+ltifIIE9EMIMTuT/mEzoIMewUINruDBIR/jJnbguonqQ=="
+    crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.6.0/chart.min.js"></script>
+</head>
+
+<body>
+
+  <nav class="navbar navbar-expand-sm navbar-dark fixed-top">
+    <a class="navbar-brand" href="#">Surface Temperature</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup"
+      aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+      <div class="navbar-nav">
+        <a class="nav-item nav-link" href="./index.html"><span class="fa fa-home fa-lg"></span> Home</a>
+        <a class="nav-item nav-link" href="./co2.html">CO2 Emissions</a>
+        <a class="nav-item nav-link" href="./st.html">Surface Temperature</a>
+        <a class="nav-item nav-link" href="./nd.html">Natural Disasters</a>
+      </div>
+  </nav>
+
+  <header class="jumbotron">
+    <h2>Region-A Vs Region-B Comparision</h2>
+  </header>
+
+  <form action="/action_page.php">
+    <div class="mb-3">
+      <h3>Region 1</h3>
+      <label for="lata1">Latitude A1</label>
+      <input type="text" id="lata1" name="lata1"><br><br>
+      <label for="lata2">Latitude A2</label>
+      <input type="text" id="lata2" name="lata2"><br><br>
+    </div>
+    <div class="mb-3">
+      <h3>Region 2</h3>
+      <label for="latb1">Latitude B1</label>
+      <input type="text" id="latb1" name="latb1"><br><br>
+      <label for="latb2">Latitude B2</label>
+      <input type="text" id="latb2" name="latb2"><br><br>
+    </div>
+    <div class="mb-3">
+      <label for="startyear" class="form-label">Start Year</label>
+      <select id="startyear">
+        <option value="-1">Year</option>
+      </select>
+    </div>
+    <div class="mb-3">
+      <label for="endyear" class="form-label">End Year</label>
+      <select id="endyear">
+        <option value="-1">Year</option>
+      </select>
+    </div>
+    <button id="submitButton" type="submit" class="btn btn-primary">Submit</button>
+  </form>
+
+  <canvas id="myChart" width="3000" height="600"></canvas>
+
+  <!-- jQuery first, then Popper.js, then Bootstrap JS. -->
+  <script src="node_modules/jquery/dist/jquery.slim.min.js"></script>
+  <script src="node_modules/popper.js/dist/umd/popper.min.js"></script>
+  <script src="node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
+  <script>
+    var selectBox1 = document.getElementById('startyear');
+    var selectBox2 = document.getElementById('endyear');
+    for (var i = 1851; i <= 2013; i++) {
+      // create option element
+      var option = document.createElement('option');
+      // add value and text name
+      option.value = i;
+      option.innerHTML = i;
+      // add the option element to the selectbox
+      selectBox1.appendChild(option);
+    }
+    for (var i = 1851; i <= 2013; i++) {
+      // create option element
+      var option = document.createElement('option');
+      // add value and text name
+      option.value = i;
+      option.innerHTML = i;
+      // add the option element to the selectbox
+      selectBox2.appendChild(option);
+    }
+  </script>
+
+  <script>
+    document.getElementById('submitButton').onclick = async function doSomething(event) {
+      try {
+        event.preventDefault();
+        if (Chart.getChart("myChart") !== undefined) {
+          console.log('yyy');
+          Chart.getChart("myChart").destroy();
+        }
+        // var select1 = document.getElementById('startyear');
+        var lata1 = document.getElementById('lata1').value;
+        var lata2 = document.getElementById('lata2').value;
+        var latb1 = document.getElementById('latb1').value;
+        var latb2 = document.getElementById('latb2').value;
+        var select1 = document.getElementById('startyear');
+        var year1 = select1.options[select1.selectedIndex].value;
+        var select2 = document.getElementById('endyear');
+        var year2 = select2.options[select2.selectedIndex].value;
+
+        console.log('year1 is :', year1);
+        console.log('year2 is :', year2);
+        const response1 = await axios.post('http://localhost:3002/surface-temperatures/regions', {
+          "latA1": lata1,
+          "latA2": lata2,
+          "startYear": year1,
+          "endYear": year2,
+          "r1": "yes"
+        }, { timeout: 10000 });
+
+        const response2 = await axios.post('http://localhost:3002/surface-temperatures/regions', {
+          "latA1": latb1,
+          "latA2": latb2,
+          "startYear": year1,
+          "endYear": year2,
+        }, { timeout: 10000 });
+
+        const resultSet1 = response1.data;
+        const resultSet2 = response2.data;
+
+        console.log('IMPORTANT', resultSet1);
+
+        var labelarray = []
+        var data1 = []
+        var data2 = []
+        for (const i in resultSet1.rows) {
+          labelarray.push(resultSet1.rows[i][1])
+          data1.push(resultSet1.rows[i][0])
+        }
+
+        for (const i in resultSet2.rows) {
+          data2.push(resultSet2.rows[i][0])
+        }
+
+        const labels = labelarray;
+        const data = {
+          labels: labels,
+          datasets: [
+            {
+              label: resultSet1.metaData[2].Region,
+              data: data1,
+              borderColor: '#0bb538',
+              backgroundColor: '#014714'
+            },
+            {
+              label: resultSet2.metaData[2].Region,
+              data: data2,
+              borderColor: '#b631bd',
+              backgroundColor: '#b50e96'
+            }
+          ]
+        };
+
+        // let rows = resultSet1.rows;
+        // let years = [];
+        // let surfaceTemperatures = [];
+        // for (let i = 0; i < rows.length; i++) {
+        //   surfaceTemperatures.push(rows[i][0]);
+        //   years.push(rows[i][1]);
+        // }
+
+        // var years = [1500, 1600, 1700, 1750, 1800, 1850, 1900, 1950, 1999, 2050];
+        // var asia = [282, 350, 411, 502, 635, 809, 947, 1402, 3700, 5267];
+        // var northAmerica = [6, 3, 2, 2, 7, 26, 82, 172, 312, 433];
+
+        var ctx = document.getElementById('myChart');
+        var myChart = new Chart(ctx, {
+          type: 'line',
+          data: data
+        }
+        )
+
+        console.log(JSON.stringify(response));
+        return response;
+      } catch (err) {
+        console.log(err);
+      }
+    };
+  </script>
+
+
+</body>
+
+</html>
