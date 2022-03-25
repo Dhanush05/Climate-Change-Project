@@ -1,0 +1,88 @@
+Complex Query - 1:
+SELECT (T2.AVGTEMP - T1.AVGTEMP) AS DIFF, T1.COUNTRY FROM
+(select avgtemp,country from country_temperatures where temp_date = '01-FEB-1910')  T1,
+(select avgtemp,country from country_temperatures where temp_date = '01-FEB-2010')  T2
+where t1.country = t2.country order by diff desc
+
+select country,diff,my_rank from (
+SELECT ((T2.AVGTEMP - T1.AVGTEMP)/(t2.year2-t1.year1)) AS DIFF, T1.COUNTRY, RANK() over (order by (T2.AVGTEMP - T1.AVGTEMP)/(t2.year2-t1.year1) desc) my_rank 
+FROM (select avgtemp,country, extract(year from temp_date) as year1 from country_temperatures where temp_date = '01-FEB-1910')  T1,
+(select avgtemp,country, extract(year from temp_date) as year2 from country_temperatures where temp_date = '01-FEB-2010')  T2
+where t1.country = t2.country order by diff desc )
+where my_rank<3   -- from user input take the rank here
+---------------------
+Final Complex Query - 1: 
+select extract(year from temp_date) as year, avg(avgtemp),country from (
+select temp_date,avgtemp,avgtempuncertainity,country from country_temperatures 
+where country in (select country from (
+select country,diff,my_rank,year1,year2 from (
+SELECT ((T2.AVGTEMP - T1.AVGTEMP)*100/(T1.AVGTEMP)) AS DIFF, t1.year1,t2.year2,
+T1.COUNTRY, RANK() over (order by (T2.AVGTEMP - T1.AVGTEMP)/(T1.AVGTEMP) desc) my_rank 
+FROM (select avgtemp,country, extract(year from temp_date) as year1 from country_temperatures where temp_date = '01-FEB-1910') T1,
+(select avgtemp,country, extract(year from temp_date) as year2 from country_temperatures where temp_date = '01-FEB-2010')  T2
+where t1.country = t2.country)
+where my_rank<3)  
+)) 
+group by extract(year from temp_date),country
+having extract(year from temp_date) between extract(year from TO_DATE('01-FEB-1910','DD-Mon-YYYY')) and 
+extract(year from TO_DATE('01-FEB-2010','DD-Mon-YYYY')) 
+order by extract(year from temp_date)
+---------------------------------------------------------------------------------------------------------------------
+Complex Query - 3:
+select emissions, year from(
+select sum(value) as emissions,year from co2emissions where country_code in 
+(select code from country_details where incomegroup ='High income') -------- take input for various income groups
+group by year order by year)
+where year between 1960 and 2015
+---------
+select * from 
+(select year, sum(value) as total from co2emissions where year in 2000 group by year),
+(select  sum(value) as lowincome from co2emissions where year = 2000 and country_code in (select code from country_details
+where incomegroup = 'Low income' or incomegroup = 'Low Middle Income' or incomegroup = 'Upper middle income' or incomegroup is null)
+group by year),
+(select  sum(value)as Highincome from co2emissions where year = 2000 and country_code in (select code from country_details
+where incomegroup='High income') group by year)
+----------------------------------------------------------------------------------------------------------------------
+Complex Query - 7:
+
+select year, landtemp-lag(landtemp) over (order by year), extent from (
+select t1.sum as landtemp, t1.year,t2.extent from (select sum(landavgtemp) as sum, extract(year from temp_date) as year 
+from (select * from global_temperatures where extract(year from temp_date) between 1980 and 2015)
+group by extract(year from temp_date) 
+order by extract(year from temp_date)) t1,(select m_year, extent-lead(extent) over (order by m_year) as extent from melting_ice) t2
+where t1.year = t2.m_year)
+-------------------------------------------------------------------------------------------------------------------------
+Complex Query - 2:
+select sum(avgtemp)/count(avgtemp), extract(year from temp_date) as years from country_temperatures 
+where country in (
+select name from country_details where latitudes>-40
+intersect 
+select name from country_details where latitudes<-20)
+group by extract(year from temp_date)
+having extract(year from temp_date)>1900 and extract(year from temp_date)<2010
+order by years
+----------------------------------------------------------------------------------------------------------------------------
+select count(disaster_id)from (
+select ltrim(TO_CHAR(disaster_date, 'mm-yyyy'),0) as mmdd, state, disaster_id, year, type 
+from disasters_usa where type = 'Hurricane' 
+and extract(year from disaster_date) between 1994 and 2004
+)
+--------------------
+select * from (select count(disaster_id) as dis1 from (
+select ltrim(TO_CHAR(disaster_date, 'mm-yyyy'),0) as mmdd, state, disaster_id, year, type 
+from disasters_usa where type = 'Hurricane' 
+and extract(year from disaster_date) between 1994 and 2004)),
+(select count(disaster_id) as dis2 from (
+select ltrim(TO_CHAR(disaster_date,  'mm-yyyy'),0) as mmdd, state, disaster_id, year, type 
+from disasters_usa where type = 'Flood' 
+and extract(year from disaster_date) between 1994 and 2004))
+-------------------------------------------------------------------------------------------------------------------------------
+select avg, months, years from (
+select sum(avgtemp)/count(avgtemp) as avg, extract(month from temp_date) as months,extract(year from temp_date) as years
+from state_temperatures where country = 'United States' and state = 'Alabama'
+group by extract(month from temp_date), extract(year from temp_date) order by months) 
+where months = 1 and years between 1900 and 2000
+
+--like say alabama, aug lo 1980 lo entha undhi 1981 aug lo entha undhi ala every year month wise prakaram chesthe ?
+--select * from state_temperatures
+----------------------------------------------------------------------------------------------------------------------------------
